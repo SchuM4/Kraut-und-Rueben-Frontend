@@ -1,7 +1,9 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <nav>
+    <router-link to="/">Home</router-link>
+    <router-link to="/bestellungen">Bestellungen</router-link>
+  </nav>
 </template>
