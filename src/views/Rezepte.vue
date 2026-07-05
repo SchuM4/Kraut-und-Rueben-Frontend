@@ -10,8 +10,8 @@
 
                 <Divider v-if="selectedAction" />
 
-                <div class="filter-row" v-if="selectedAction === 'ohneRezept'">
-                    <Button label="Zutaten ohne Rezept" icon="pi pi-list" @click="getZutatenOhneRezept()" />
+                <div class="filter-row" v-if="selectedAction === 'wenigerZutaten'">
+                    <Button label="Weniger Zutaten" icon="pi pi-list" @click="getRezepteMitWenigerAlsFuenfZutaten()" />
                 </div>
 
                 <div class="filter-row" v-else-if="selectedAction === 'niedrigerBestand'">
@@ -43,21 +43,21 @@
             </Message>
 
             <div v-else class="ingredient-grid">
-                
+                <RezeptCard v-for="recipe in recipes" :key="recipe.rezeptnr" :recipe="recipe"/>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import RezeptCard from '../components/RezeptCard.vue';
 import api from '../services/api';
-import IngredientCard from '../components/IngredientCard.vue';
 import { Button, InputText, InputNumber, Card, Divider, Message, ProgressSpinner, Select } from 'primevue';
 
 export default {
     name: 'zutaten',
     components: {
-        IngredientCard,
+        RezeptCard,
         Button,
         InputText,
         InputNumber,
@@ -76,10 +76,16 @@ export default {
             lieferantenname: '',
             selectedAction: null,
             actionOptions: [
-                { label: 'Zutaten ohne Rezept', value: 'ohneRezept' },
-                { label: 'Zutaten mit niedrigem Bestand', value: 'niedrigerBestand' },
-                { label: 'Zutaten von einem Lieferant', value: 'nachLieferant' }
-            ]
+                { label: 'Einen Rezept', value: 'bestimmterRezept' },
+                { label: 'Rezepte mit einer Zutat', value: 'eineZutat' },
+                { label: 'Rezepte mit weniger als 5 Zutaten', value: 'wenigerZutaten' },
+                { label: 'Rezepte mit weniger als 5 Zutaten & aus einer Kategorie', value: 'wenigerZutatenKategorie'},
+                { label: 'Rezepte sortiert nach Bestellanzahl', value: 'bestellanzahl'},
+                { label: 'Rezepte nach Portionsanzahl filtern', value: 'portionsanzahl'},
+                { label: 'Rezepte nach Kalorien filtern', value: 'kalorien'},
+                { label: 'Rezepte nach einer Ernährungskategorie filtern', value: 'ernaehrungskategorie'}
+            ],
+
         };
     },
     methods: {
