@@ -1,7 +1,7 @@
 <template>
     <div class="zutaten-page">
         <Card class="filter-card">
-            <template #title>Zutaten durchsuchen</template>
+            <template #title>Rezepte durchsuchen</template>
             <template #content>
                 <div class="filter-row">
                     <Select v-model="selectedAction" :options="actionOptions" optionLabel="label" optionValue="value"
@@ -9,21 +9,47 @@
                 </div>
 
                 <Divider v-if="selectedAction" />
+                
+                <div class="filter-row" v-if="selectedAction === 'bestimmterRezept'">
+                    <Select v-model="selectedRecipe" :options="recipeNames" optionLabel="label" optionValue="label"
+                    placeholder="Rezept auswählen" class="action-select"/>
+                    <Button label="Go" icon="pi pi-list" @click="getBestimmtenRezept(selectedRecipe)"/>
+                </div>
 
-                <div class="filter-row" v-if="selectedAction === 'wenigerZutaten'">
+                <div class="filter-row" v-else-if="selectedAction === 'eineZutat'">
+                    <InputText v-model="zutat" placeholder="Zucchini" />
+                    <Button label="Go" icon="pi pi-list"
+                        @click="getRezepteMitZutat(zutat)" />
+                </div>
+
+                <div class="filter-row" v-else-if="selectedAction === 'wenigerZutaten'">
                     <Button label="Weniger Zutaten" icon="pi pi-list" @click="getRezepteMitWenigerAlsFuenfZutaten()" />
                 </div>
 
-                <div class="filter-row" v-else-if="selectedAction === 'niedrigerBestand'">
-                    <InputNumber v-model="bestand" placeholder="Mindestbestand" showButtons :min="0" />
-                    <Button label="Niedriger Bestand" icon="pi pi-exclamation-triangle"
-                        @click="getZutatenMitNiedrigemBestand(bestand)" />
+                <div class="filter-row" v-else-if="selectedAction === 'wenigerZutatenKategorie'">
+                    <Select v-model="selectedCategory" :options="categories" optionLabel="label" optionValue="label"
+                    placeholder="Kategorie auswählen" class="action-select"/>
+                    <Button label="Go" icon="pi pi-list" @click="getRezepteMitWenigerAlsFuenfZutatenVonKategorie(selectedCategory)"/>
                 </div>
 
-                <div class="filter-row" v-else-if="selectedAction === 'nachLieferant'">
-                    <InputText v-model="lieferantenname" placeholder="Beispiel GmbH" />
-                    <Button label="Nach Lieferant" icon="pi pi-truck"
-                        @click="getZutatenVonEinemLieferant(lieferantenname)" />
+                <div class="filter-row" v-else-if="selectedAction === 'bestellanzahl'">
+                    <Button label="Go" icon="pi pi-list" @click="getRezepteSortiertNachBestellanzahl" />
+                </div>
+
+                <div class="filter-row" v-else-if="selectedAction === 'portionsanzahl'">
+                    <InputNumber v-model="bestellanzahl" placeholder="Portionen" showButtons :min="0" />
+                    <Button label="Go" icon="pi pi-list" @click="getRezepteMitMindestPortionen(bestellanzahl)"/>
+                </div>
+
+                <div class="filter-row" v-else-if="selectedAction === 'kalorien'">
+                    <InputText v-model="calories" placeholder="Portionen" showButtons :min="0" />
+                    <Button label="Go" icon="pi pi-list" @click="getRezepteMitMaxKalorien(calories)"/>
+                </div>
+
+                <div class="filter-row" v-else-if="selectedAction === 'ernaehrungskategorie'">
+                    <Select v-model="selectedCategory" :options="categories" optionLabel="label" optionValue="label"
+                    placeholder="Kategorie auswählen" class="action-select"/>
+                    <Button label="Go" icon="pi pi-list" @click="getRezepteEinerKategorie(selectedCategory)"/>
                 </div>
             </template>
         </Card>
@@ -55,7 +81,7 @@ import api from '../services/api';
 import { Button, InputText, InputNumber, Card, Divider, Message, ProgressSpinner, Select } from 'primevue';
 
 export default {
-    name: 'zutaten',
+    name: 'rezepte',
     components: {
         RezeptCard,
         Button,
@@ -72,8 +98,9 @@ export default {
             recipes: [],
             loading: false,
             error: null,
-            bestand: 0,
-            lieferantenname: '',
+            bestellanzahl: 0,
+            calories: 0,
+            zutat: '',
             selectedAction: null,
             actionOptions: [
                 { label: 'Einen Rezept', value: 'bestimmterRezept' },
@@ -85,7 +112,41 @@ export default {
                 { label: 'Rezepte nach Kalorien filtern', value: 'kalorien'},
                 { label: 'Rezepte nach einer Ernährungskategorie filtern', value: 'ernaehrungskategorie'}
             ],
-
+            selectedRecipe: null,
+            recipeNames: [
+                { label: 'Spaghetti Bolognese', value: 'spaghettiBolognese'},
+                { label: 'Hähnchen-Gemüse-Pfanne', value: 'haehnchenGemuesePfanne'},
+                { label: 'Lachs mit Basmatireis', value: 'lachsMitBasmatireis'},
+                { label: 'Veganes Linsen-Curry', value: 'veganesLinsenCurry'},
+                { label: 'Caprese-Salat', value: 'capreseSalat'},
+                { label: 'Kartoffel-Gratin', value: 'kartoffelGratin'},
+                { label: 'Brokkoli-Garnelen-Pfanne', value: 'brokkoliGarnelenPfanne'},
+                { label: 'Vollkornbrot mit Honig', value: 'vollkornbrotMitHonig'},
+                { label: 'Schweineschnitzel mit Kartoffelsalat', value: 'schweineschnitzelMitKartoffelsalat'},
+                { label: 'Gemüsesuppe', value: 'gemüsesuppe'},
+                { label: 'Thunfisch-Salat', value: 'thunfischSalat'},
+                { label: 'Haferflocken-Bowl', value: 'haferflockenBowl'},
+                { label: 'Käse-Omelett', value: 'kaeseOmelett'},
+                { label: 'Kichererbsen-Bowl', value: 'kichererbsenBowl'},
+                { label: 'Buntes Gemüse-Couscous', value: 'buntesGemüseCouscous'},
+                { label: 'Thaicurry mit Hähnchen', value: 'thaicurryMitHaehnchen'},
+                { label: 'Kartoffelsuppe', value: 'kartoffelsuppe'},
+                { label: 'Milchreis mit Apfelmus', value: 'milchreisMitApfelmus'},
+                { label: 'Sommerlicher Couscous-Salat', value: 'sommerlicherCouscousSalat'},
+            ],
+            categories: [
+                { label: 'Vegan', value: 'vegan'},
+                { label: 'Vegetarisch', value: 'vegetarisch'},
+                { label: 'Glutenfrei', value: 'glutenfrei'},
+                { label: 'Laktosefrei', value: 'laktosefrei'},
+                { label: 'Low Carb', value: 'lowCarb'},
+                { label: 'High Protein', value: 'highProtein'},
+                { label: 'Bio', value: 'bio'},
+                { label: 'Paleo', value: 'paleo'},
+                { label: 'Zuckerfrei', value: 'zuckerfrei'},
+                { label: 'Histaminarm', value: 'histaminarm'},
+            ],
+            selectedCategory: null
         };
     },
     methods: {
@@ -97,7 +158,7 @@ export default {
         },
         async getRezepteMitZutat(zutat) {
             await this.fetchRecipes(
-                () => api.get(`/rezept/zutaten?rezeptname=${zutat}`),
+                () => api.get(`/rezept/zutat?zutatname=${zutat}`),
                 `Keine Rezepte mit der Zutat ${zutat} gefunden`
             );
         },
