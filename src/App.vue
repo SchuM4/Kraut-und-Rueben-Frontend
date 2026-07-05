@@ -34,6 +34,10 @@ export default {
           label: 'Bestellungen',
           to: '/bestellungen',
         },
+        {
+          label: 'Zutaten',
+          to: '/zutaten'
+        }
       ],
     };
   },
