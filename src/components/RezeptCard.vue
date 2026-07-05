@@ -134,7 +134,7 @@ export default {
     },
     imageBasePath: {
       type: String,
-      default: 'assets/images/recipes/',
+      default: '/images/',
     },
   },
   data() {
