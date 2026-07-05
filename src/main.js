@@ -6,7 +6,7 @@ import router from './router/index.js'
 import PrimeVue from 'primevue/config';
 import '@primevue/themes/aura'; // Use the minified version
 import 'primeicons/primeicons.css';
-import { Avatar } from 'primevue';
+import Aura from '@primevue/themes/aura'
 
 
 const app = createApp(App)
@@ -14,7 +14,7 @@ const app = createApp(App)
 app.use(router)
 app.use(PrimeVue, {
     theme: {
-        preset: Avatar
+        preset: Aura
     }
 });
 
