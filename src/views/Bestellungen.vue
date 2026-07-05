@@ -20,9 +20,10 @@
                 </div>
 
                 <div class="filter-row" v-else-if="selectedAction === 'durchschnittNaehrwert'">
-                    <InputNumber v-model="rechnugnsbetrag" placeholder="Mindestbestand" showButtons :min="0" />
-                    <Button label="Niedriger Bestand" icon="pi pi-exclamation-triangle"
-                        @click="getZutatenMitNiedrigemBestand(rechnugnsbetrag)" />
+                    <Select v-model="selectedCustomerId" :options="kundennamen" optionLabel="label" optionValue="value"
+                            placeholder="Nachname auswählen" class="action-select" />
+                    <Button label="Go" icon="pi pi-check"
+                        @click="getDurchschnittNaehrwerte(selectedCustomerId)" />
                 </div>
 
                 <div class="filter-row" v-else-if="selectedAction === 'bestellungsanzahl'">
@@ -43,13 +44,17 @@
                 {{ error }}
             </Message>
 
-            <Message v-else-if="!bestellungen.length" severity="info" :closable="false">
+            <Message v-else-if="!responseData.length" severity="info" :closable="false">
                 Keine Zutaten gefunden.
             </Message>
 
-            <div v-else class="ingredient-grid">
-                <BestellungCard v-for="bestellung in bestellungen"
+            <div v-else-if="selectedAction === 'teureBestellungen'" class="ingredient-grid">
+                <BestellungCard v-for="bestellung in responseData"
                 :key="bestellung.id" :bestellung="bestellung"/>
+            </div>
+
+            <div v-else-if="selectedAction === 'durchschnittNaehrwert'">
+                <AverageNutritionCard :durchschnitt="responseData"/>
             </div>
         </div>
     </div>
@@ -58,11 +63,13 @@
 <script>
 import api from '../services/api';
 import BestellungCard from '../components/BestellungCard.vue';
+import AverageNutritionCard from '../components/AverageNutritionCard.vue';
 import { Button, InputText, InputNumber, Card, Divider, Message, ProgressSpinner, Select } from 'primevue';
 
 export default {
     name: 'zutaten',
     components: {
+        AverageNutritionCard,
         BestellungCard,
         Button,
         InputText,
@@ -75,29 +82,30 @@ export default {
     },
     data() {
         return {
-            bestellungen: [],
+            responseData: [],
             loading: false,
             error: null,
             rechnugnsbetrag: 0,
+            selectedCustomerId: -1,
             kundennamen: [
-                { label: 'Bauer', value: 'bauer' },
-                { label: 'Becker', value: 'becker' },
-                { label: 'Fischer', value: 'fischer' },
-                { label: 'Hoffman', value: 'hoffman' },
-                { label: 'Klein', value: 'Klein' },
-                { label: 'Koch', value: 'koch' },
-                { label: 'Meyer', value: 'meyer' },
-                { label: 'Müller', value: 'mueller' },
-                { label: 'Neumann', value: 'neumann' },
-                { label: 'Richter', value: 'richter' },
-                { label: 'Schmidt', value: 'schmidt' },
-                { label: 'Schneider', value: 'schneider' },
-                { label: 'Schröder', value: 'schroeder' },
-                { label: 'Scwarz', value: 'schwarz' },
-                { label: 'Schäfer', value: 'schaefer' },
-                { label: 'Wagner', value: 'wagner' },
-                { label: 'Weber', value: 'weber' },
-                { label: 'Wolf', value: 'wolf' },
+                { label: 'Bauer', value: '12' },
+                { label: 'Becker', value: '8' },
+                { label: 'Fischer', value: '4' },
+                { label: 'Hoffman', value: '9' },
+                { label: 'Klein', value: '14' },
+                { label: 'Koch', value: '11' },
+                { label: 'Meyer', value: '6' },
+                { label: 'Müller', value: '1' },
+                { label: 'Neumann', value: '17' },
+                { label: 'Richter', value: '13' },
+                { label: 'Schmidt', value: '2' },
+                { label: 'Schneider', value: '3' },
+                { label: 'Schröder', value: '16' },
+                { label: 'Scwarz', value: '18' },
+                { label: 'Schäfer', value: '10' },
+                { label: 'Wagner', value: '7' },
+                { label: 'Weber', value: '5' },
+                { label: 'Wolf', value: '15' },
             ],
             selectedName: null,
             selectedAction: null,
@@ -115,10 +123,10 @@ export default {
                 'Bestellungen können nicht geladen werden'
             );
         },
-        async getZutatenMitNiedrigemBestand(bestand) {
+        async getDurchschnittNaehrwerte(kundennr) {
             await this.fetchData(
-                () => api.get(`/zutat/niedrig-bestand?bestand=${bestand}`),
-                'Zutaten mit niedrigem Bestand können nicht geladen werden'
+                () => api.get(`/bestellung/durchschnitt-naehrwert?kundennr=${kundennr}`),
+                'Bestellungen des Kunden können nicht geladen werden'
             );
         },
         async getZutatenVonEinemLieferant(lieferantenname) {
@@ -128,12 +136,12 @@ export default {
             );
         },
         async fetchData(requestFn, fallbackErrorMessage) {
-            this.bestellungen = [];
+            this.responseData = null;
             this.loading = true;
             this.error = null;
             try {
                 const response = await requestFn();
-                this.bestellungen = response.data;
+                this.responseData = response.data;
             } catch (err) {
                 if (err.response) {
                     this.error = `Fehler ${err.response.status}: ${fallbackErrorMessage}`;
