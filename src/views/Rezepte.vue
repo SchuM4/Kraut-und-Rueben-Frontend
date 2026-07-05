@@ -9,6 +9,7 @@
                 </div>
 
                 <Divider v-if="selectedAction" />
+
                 <div class="filter-row" v-if="selectedAction === 'ohneRezept'">
                     <Button label="Zutaten ohne Rezept" icon="pi pi-list" @click="getZutatenOhneRezept()" />
                 </div>
@@ -38,11 +39,11 @@
             </Message>
 
             <Message v-else-if="!recipes.length" severity="info" :closable="false">
-                Keine Zutaten gefunden.
+                Keine Rezepte gefunden.
             </Message>
 
             <div v-else class="ingredient-grid">
-                <IngredientCard v-for="ingredient in recipes" :key="ingredient.id" :ingredient="ingredient" />
+                
             </div>
         </div>
     </div>
@@ -82,24 +83,6 @@ export default {
         };
     },
     methods: {
-        async getZutatenOhneRezept() {
-            await this.fetchRecipes(
-                () => api.get('/zutat/ohne-rezept'),
-                'Zutaten können nicht geladen werden'
-            );
-        },
-        async getZutatenMitNiedrigemBestand(bestand) {
-            await this.fetchRecipes(
-                () => api.get(`/zutat/niedrig-bestand?bestand=${bestand}`),
-                'Zutaten mit niedrigem Bestand können nicht geladen werden'
-            );
-        },
-        async getZutatenVonEinemLieferant(lieferantenname) {
-            await this.fetchRecipes(
-                () => api.get(`/zutat/lieferant?lieferant=${lieferantenname}`),
-                `Keine Zutaten von Lieferant ${lieferantenname} gefunden`
-            );
-        },
         async getBestimmtenRezept(bezeichnung) {
             await this.fetchRecipes(
                 () => api.get(`/rezept/zutaten?rezeptname=${bezeichnung}`),
@@ -111,6 +94,42 @@ export default {
                 () => api.get(`/rezept/zutaten?rezeptname=${zutat}`),
                 `Keine Rezepte mit der Zutat ${zutat} gefunden`
             );
+        },
+        async getRezepteMitWenigerAlsFuenfZutaten() {
+            await this.fetchRecipes(
+                () => api.get(`/rezept/wenige-zutaten`),
+                `Keine Rezepte mit weniger als 5 Zutaten gefunden`
+            )
+        },
+        async getRezepteMitWenigerAlsFuenfZutatenVonKategorie(kategorie) {
+            await this.fetchRecipes(
+                () => api.get(`/rezept/wenige-zutaten/kategorie?kategorie=${kategorie}`),
+                `Keine Rezepte mit weniger als 5 Zutaten von ${kategorie} gefunden`
+            )
+        },
+        async getRezepteSortiertNachBestellanzahl() {
+            await this.fetchRecipes(
+                () => api.get(`/rezept/sortiert-nach-bestellanzahl`),
+                `Keine Rezepte gefunden`
+            )
+        },
+        async getRezepteMitMindestPortionen(portionen) {
+            await this.fetchRecipes(
+                () => api.get(`/rezept/mindest-portionen?mindestPortionen=${portionen}`),
+                `Keine ${portionen}-portion Rezepte gefunden`
+            )
+        },
+        async getRezepteMitMaxKalorien(maxKalorien) {
+            await this.fetchRecipes(
+                () => api.get(`/rezept/max-kalorien?maxKalorien=${maxKalorien}`),
+                `Keine Rezepte mit weniger als ${maxKalorien} Kcal gefunden`
+            )
+        },
+        async getRezepteEinerKategorie(kategorie) {
+            await this.fetchRecipes(
+                () => api.get(`/rezept/ernaehrungskategorie?ernaehrungskategorie=${kategorie}`),
+                `Keine Rezepte in der Kategorie ${kategorie} gefunden`
+            )
         },
         async fetchRecipes(requestFn, fallbackErrorMessage) {
             this.recipes = [];
