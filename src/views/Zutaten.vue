@@ -1,0 +1,157 @@
+<template>
+  <div class="zutaten-page">
+    <Card class="filter-card">
+      <template #title>Zutaten durchsuchen</template>
+      <template #content>
+        <div class="filter-row">
+          <Button label="Zutaten ohne Rezept" icon="pi pi-list" @click="getZutatenOhneRezept()" />
+        </div>
+
+        <Divider />
+
+        <div class="filter-row">
+          <InputNumber v-model="bestand" placeholder="Mindestbestand" showButtons :min="0" />
+          <Button label="Niedriger Bestand" icon="pi pi-exclamation-triangle" @click="getZutatenMitNiedrigemBestand(bestand)" />
+        </div>
+
+        <Divider />
+
+        <div class="filter-row">
+          <InputText v-model="lieferantenname" placeholder="Beispiel GmbH" />
+          <Button label="Nach Lieferant" icon="pi pi-truck" @click="getZutatenVonEinemLieferant(lieferantenname)" />
+        </div>
+      </template>
+    </Card>
+
+    <div class="results-section">
+      <div v-if="loading" class="status-message">
+        <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="4" />
+        <span>Lade Zutaten...</span>
+      </div>
+
+      <Message v-else-if="error" severity="error" :closable="false">
+        {{ error }}
+      </Message>
+
+      <Message v-else-if="!ingredients.length" severity="info" :closable="false">
+        Keine Zutaten gefunden.
+      </Message>
+
+      <div v-else class="ingredient-grid">
+        <IngredientCard
+          v-for="ingredient in ingredients"
+          :key="ingredient.id"
+          :ingredient="ingredient"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import api from '../services/api';
+import IngredientCard from '../components/IngredientCard.vue';
+import { Button, InputText, InputNumber, Card, Divider, Message, ProgressSpinner } from 'primevue';
+
+export default {
+  name: 'zutaten',
+  components: {
+    IngredientCard,
+    Button,
+    InputText,
+    InputNumber,
+    Card,
+    Divider,
+    Message,
+    ProgressSpinner
+  },
+  data() {
+    return {
+      ingredients: [],
+      loading: false,
+      error: null,
+      bestand: 0,
+      lieferantenname: ''
+    };
+  },
+  methods: {
+    async getZutatenOhneRezept() {
+      await this.fetchIngredients(
+        () => api.get('/zutat/ohne-rezept'),
+        'Zutaten können nicht geladen werden'
+      );
+    },
+    async getZutatenMitNiedrigemBestand(bestand) {
+      await this.fetchIngredients(
+        () => api.get(`/zutat/niedrig-bestand?bestand=${bestand}`),
+        'Zutaten mit niedrigem Bestand können nicht geladen werden'
+      );
+    },
+    async getZutatenVonEinemLieferant(lieferantenname) {
+      await this.fetchIngredients(
+        () => api.get(`/zutat/lieferant?lieferant=${lieferantenname}`),
+        `Keine Zutaten von Lieferant ${lieferantenname} gefunden`
+      );
+    },
+    async fetchIngredients(requestFn, fallbackErrorMessage) {
+      this.ingredients = [];
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await requestFn();
+        this.ingredients = response.data;
+      } catch (err) {
+        if (err.response) {
+          this.error = `Fehler ${err.response.status}: ${fallbackErrorMessage}`;
+        } else if (err.request) {
+          this.error = 'Keine Antwort vom Server erhalten';
+        } else {
+          this.error = `Request error: ${err.message}`;
+        }
+      } finally {
+        this.loading = false;
+      }
+    }
+  }
+};
+</script>
+
+<style scoped>
+.zutaten-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filter-card {
+  width: 100%;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.results-section {
+  min-height: 200px;
+}
+
+.status-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--p-text-muted-color, #6b7280);
+}
+
+.ingredient-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+</style>
