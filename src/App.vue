@@ -41,6 +41,10 @@ export default {
         {
           label: 'Rezepte',
           to: '/rezepte'
+        },
+        {
+          label: 'Kunden',
+          to: '/kunden'
         }
       ],
     };

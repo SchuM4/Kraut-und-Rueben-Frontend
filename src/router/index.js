@@ -4,6 +4,7 @@ import Home from "../views/Home.vue";
 import Bestellungen from "../views/Bestellungen.vue";
 import Zutaten from "../views/Zutaten.vue";
 import Rezepte from "../views/Rezepte.vue";
+import Kunden from "../views/Kunden.vue";
 
 const routes = [
     {
@@ -25,6 +26,11 @@ const routes = [
         path: '/rezepte',
         name: 'rezepte',
         component: Rezepte
+    },
+    {
+        path: '/kunden',
+        name: 'kunden',
+        component: Kunden
     }
 ]
 

@@ -7,6 +7,7 @@ import PrimeVue from 'primevue/config';
 import '@primevue/themes/aura'; // Use the minified version
 import 'primeicons/primeicons.css';
 import Aura from '@primevue/themes/aura'
+import ConfirmationService from 'primevue/confirmationservice';
 
 
 const app = createApp(App)
@@ -17,5 +18,6 @@ app.use(PrimeVue, {
         preset: Aura
     }
 });
+app.use(ConfirmationService);
 
 app.mount('#app')
