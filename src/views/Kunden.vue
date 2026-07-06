@@ -1,12 +1,12 @@
 <template>
     <div class="zutaten-page">
         <Card class="filter-card">
-            <template #title>Kunden verwalten</template>
+            <template #title>Kunde anonymisieren</template>
             <template #content>
                 <div class="filter-row">
-                    <Select v-model="selectedCustomer" :options="actionOptions" optionLabel="label" optionValue="value" 
+                    <Select v-model="selectedCustomer" :options="actionOptions" optionLabel="label" optionValue="value"
                     placeholder="Kunde auswählen" class="action-select" />
-                    <Button label="Delete" severity="danger" @click="deleteCustomer(selectedCustomer)"/>
+                    <Button label="Delete" severity="danger" :disabled="!selectedCustomer" @click="confirmDelete" />
                 </div>
             </template>
         </Card>
@@ -29,26 +29,24 @@
                 Kunde nicht gefunden oder schon anonymisiert.
             </Message>
         </div>
+
+        <ConfirmDialog></ConfirmDialog>
     </div>
 </template>
 
 <script>
 import api from '../services/api';
-import IngredientCard from '../components/IngredientCard.vue';
-import { Button, InputText, InputNumber, Card, Divider, Message, ProgressSpinner, Select } from 'primevue';
+import { Button, Card, Message, ProgressSpinner, Select, ConfirmDialog } from 'primevue';
 
 export default {
     name: 'zutaten',
     components: {
-        IngredientCard,
         Button,
-        InputText,
-        InputNumber,
         Card,
-        Divider,
         Message,
         ProgressSpinner,
-        Select
+        Select,
+        ConfirmDialog
     },
     data() {
         return {
@@ -76,18 +74,40 @@ export default {
                 { label: 'Wagner', value: '7' },
                 { label: 'Weber', value: '5' },
                 { label: 'Wolf', value: '15' },
-            ],   
+            ],
         };
     },
     methods: {
+        confirmDelete() {
+            const customerLabel = this.actionOptions.find(
+                opt => opt.value === this.selectedCustomer
+            )?.label ?? this.selectedCustomer;
+
+            this.$confirm.require({
+                message: `Möchten Sie den Kunden "${customerLabel}" wirklich anonymisieren? Dies kann nicht rückgängig gemacht werden.`,
+                header: 'Anonymisierung bestätigen',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'Anonymisieren',
+                rejectLabel: 'Abbrechen',
+                acceptProps: {
+                    severity: 'danger'
+                },
+                rejectProps: {
+                    severity: 'secondary',
+                    outlined: true
+                },
+                accept: () => {
+                    this.deleteCustomer(this.selectedCustomer);
+                }
+            });
+        },
         async deleteCustomer(customerId) {
-            if (!customerId) return;
             this.loading = true;
             this.error = null;
             this.success = false;
             this.hasAttempted = true;
             try {
-                await api.delete(`/api/kunden/${customerId}/anonymisieren`);
+                await api.delete(`/kunden/${customerId}/anonymisieren`);
                 this.success = true;
             } catch (err) {
                 if (err.response) {
@@ -135,12 +155,5 @@ export default {
     align-items: center;
     gap: 0.75rem;
     color: var(--p-text-muted-color, #6b7280);
-}
-
-.ingredient-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
 }
 </style>
