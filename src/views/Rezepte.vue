@@ -10,7 +10,7 @@
 
                 <Divider v-if="selectedAction" />
                 
-                <div class="filter-row" v-if="selectedAction === 'bestimmterRezept'">
+                <div class="filter-row" v-if="selectedAction === 'bestimmtesRezept'">
                     <Select v-model="selectedRecipe" :options="recipeNames" optionLabel="label" optionValue="label"
                     placeholder="Rezept auswählen" class="action-select"/>
                     <Button label="Go" icon="pi pi-list" @click="getBestimmtenRezept(selectedRecipe)"/>
@@ -103,7 +103,7 @@ export default {
             zutat: '',
             selectedAction: null,
             actionOptions: [
-                { label: 'Einen Rezept', value: 'bestimmterRezept' },
+                { label: 'Ein Rezept', value: 'bestimmtesRezept' },
                 { label: 'Rezepte mit einer Zutat', value: 'eineZutat' },
                 { label: 'Rezepte mit weniger als 5 Zutaten', value: 'wenigerZutaten' },
                 { label: 'Rezepte mit weniger als 5 Zutaten & aus einer Kategorie', value: 'wenigerZutatenKategorie'},
