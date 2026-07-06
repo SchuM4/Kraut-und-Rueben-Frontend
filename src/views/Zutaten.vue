@@ -20,7 +20,8 @@
                 </div>
 
                 <div class="filter-row" v-else-if="selectedAction === 'nachLieferant'">
-                    <InputText v-model="lieferantenname" placeholder="Beispiel GmbH" />
+                    <Select v-model="lieferantenname" :options="supplierOptions" optionLabel="label" optionValue="label"
+                    placeholder="Lieferant auswählen" class="action-select"/>
                     <Button label="Nach Lieferant" icon="pi pi-truck"
                         @click="getZutatenVonEinemLieferant(lieferantenname)" />
                 </div>
@@ -78,7 +79,19 @@ export default {
                 { label: 'Zutaten ohne Rezept', value: 'ohneRezept' },
                 { label: 'Zutaten mit niedrigem Bestand', value: 'niedrigerBestand' },
                 { label: 'Zutaten von einem Lieferant', value: 'nachLieferant' }
-            ]
+            ],
+            supplierOptions: [
+                { label: 'Frische Backstube Nord', value: 1},
+                { label: 'Gemüsehof Sonnenfeld', value: 2},
+                { label: 'Bio-Metzgerei Heumann', value: 3},
+                { label: 'Fischmarkt Köln GmbH', value: 4},
+                { label: 'Käserei Allgäu Frisch', value: 5},
+                { label: 'Mühlenbäckerei Schwabenland', value: 6},
+                { label: 'Gewürzhandel Rheinland', value: 7},
+                { label: 'Bio-Hof Sachsenland', value: 8}
+
+            ]   
+            
         };
     },
     methods: {
