@@ -47,7 +47,7 @@
                 <h4>Zutaten</h4>
                 <div class="bestellung-card__row" v-for="zutat in bestellung.zutaten" :key="zutat.id">
                     <span>{{ zutat.bezeichnung }}</span>
-                    <span class="bestellung-card__row-value">{{ zutat.kalorienKcal }} kcal</span>
+                    <span class="bestellung-card__row-value">{{ zutat.bestellmenge }} {{ zutat.bezugseinheit }}</span>
                 </div>
             </section>
         </div>
