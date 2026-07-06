@@ -9,24 +9,24 @@
                 </div>
 
                 <Divider v-if="selectedAction" />
-                <div class="filter-row" v-if="selectedAction === 'teureBestellungen'">
+                <div class="filter-row" v-if="selectedAction === 'teureBestellungen'" :key="'teure'">
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 4px;">
                         <Select v-model="selectedName" :options="kundennamen" optionLabel="label" optionValue="label"
                             placeholder="Nachname auswählen" class="action-select" />
-                        <InputNumber v-model="rechnugnsbetrag" mode="decimal" :minFractionDigits="0"
+                        <InputNumber v-model="rechnungsbetrag" mode="decimal" :minFractionDigits="0"
                             :maxFractionDigits="2" placeholder="0.0" />
                     </div>
-                    <Button label="Go" icon="pi pi-list" @click="getTeureBestellungenEinesKunden(selectedName, rechnugnsbetrag)" />
+                    <Button label="Go" icon="pi pi-list"
+                        @click="getTeureBestellungenEinesKunden(selectedName, rechnungsbetrag)" />
                 </div>
 
-                <div class="filter-row" v-else-if="selectedAction === 'durchschnittNaehrwert'">
+                <div class="filter-row" v-else-if="selectedAction === 'durchschnittNaehrwert'" :key="'durchschnitt'">
                     <Select v-model="selectedCustomerId" :options="kundennamen" optionLabel="label" optionValue="value"
-                            placeholder="Nachname auswählen" class="action-select" />
-                    <Button label="Go" icon="pi pi-check"
-                        @click="getDurchschnittNaehrwerte(selectedCustomerId)" />
+                        placeholder="Nachname auswählen" class="action-select" />
+                    <Button label="Go" icon="pi pi-check" @click="getDurchschnittNaehrwerte(selectedCustomerId)" />
                 </div>
 
-                <div class="filter-row" v-else-if="selectedAction === 'bestellungsanzahl'">
+                <div class="filter-row" v-else-if="selectedAction === 'bestellungsanzahl'" :key="'bestellanzahl'">
                     <InputText v-model="kundenname" placeholder="Beispiel GmbH" />
                     <Button label="Nach Lieferant" icon="pi pi-truck"
                         @click="getZutatenVonEinemLieferant(kundenname)" />
@@ -35,26 +35,25 @@
         </Card>
 
         <div class="results-section">
-            <div v-if="loading" class="status-message">
+            <div v-if="loading" class="status-message" :key="'loading'">
                 <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="4" />
                 <span>Lade Zutaten...</span>
             </div>
 
-            <Message v-else-if="error" severity="error" :closable="false">
+            <Message v-else-if="error" severity="error" :closable="false" :key="'error'">
                 {{ error }}
             </Message>
 
-            <Message v-else-if="!responseData.length" severity="info" :closable="false">
-                Keine Zutaten gefunden.
+            <Message v-else-if="isResponseEmpty" severity="info" :closable="false" :key="'notFound'">
+                Nicht gefunden.
             </Message>
 
-            <div v-else-if="selectedAction === 'teureBestellungen'" class="ingredient-grid">
-                <BestellungCard v-for="bestellung in responseData"
-                :key="bestellung.id" :bestellung="bestellung"/>
+            <div v-else-if="selectedAction === 'teureBestellungen'" class="ingredient-grid" :key="'bestellungCard'">
+                <BestellungCard v-for="bestellung in responseData" :key="bestellung.id" :bestellung="bestellung" />
             </div>
 
-            <div v-else-if="selectedAction === 'durchschnittNaehrwert'">
-                <AverageNutritionCard :durchschnitt="responseData"/>
+            <div v-else-if="selectedAction === 'durchschnittNaehrwert'" :key="'nutrition'">
+                <AverageNutritionCard :durchschnitt="responseData" />
             </div>
         </div>
     </div>
@@ -85,7 +84,7 @@ export default {
             responseData: [],
             loading: false,
             error: null,
-            rechnugnsbetrag: 0,
+            rechnungsbetrag: 0,
             selectedCustomerId: -1,
             kundennamen: [
                 { label: 'Bauer', value: '12' },
@@ -115,6 +114,20 @@ export default {
                 { label: 'Bestellungsanzahl pro Kunde', value: 'bestellungsanzahl' }
             ]
         };
+    },
+    computed: {
+        isResponseEmpty() {
+            if (this.selectedAction === 'durchschnittNaehrwert') {
+                return !this.responseData || Object.keys(this.responseData).length === 0;
+            }
+            return !this.responseData || this.responseData.length === 0;
+        }
+    },
+    watch: {
+        selectedAction() {
+            this.responseData = [];
+            this.error = null;
+        }
     },
     methods: {
         async getTeureBestellungenEinesKunden(nachname, betrag) {
