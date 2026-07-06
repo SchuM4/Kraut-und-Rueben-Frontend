@@ -36,7 +36,7 @@
         <div class="results-section">
             <div v-if="loading" class="status-message" :key="'loading'">
                 <ProgressSpinner style="width: 32px; height: 32px" strokeWidth="4" />
-                <span>Lade Zutaten...</span>
+                <span>Verarbeitung...</span>
             </div>
 
             <Message v-else-if="error" severity="error" :closable="false" :key="'error'">
