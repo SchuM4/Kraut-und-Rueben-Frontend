@@ -27,9 +27,8 @@
                 </div>
 
                 <div class="filter-row" v-else-if="selectedAction === 'bestellungsanzahl'" :key="'bestellanzahl'">
-                    <InputText v-model="kundenname" placeholder="Beispiel GmbH" />
-                    <Button label="Nach Lieferant" icon="pi pi-truck"
-                        @click="getZutatenVonEinemLieferant(kundenname)" />
+                    <Button label="Go" icon="pi pi-list"
+                        @click="getBestellungsanzahlProKunde()" />
                 </div>
             </template>
         </Card>
@@ -53,7 +52,12 @@
             </div>
 
             <div v-else-if="selectedAction === 'durchschnittNaehrwert'" :key="'nutrition'">
-                <AverageNutritionCard :durchschnitt="responseData" />
+                <AverageNutritionCard :durchschnitt="responseData" style="border: 1px solid white;"/>
+            </div>
+
+            <div v-else-if="selectedAction === 'bestellungsanzahl'" class="ingredient-grid" :key="'bestellanzahlCard'">
+                <KundeBestellanzahlCard v-for="item in responseData" :key="item.kunde.id"
+                :kunde="item.kunde" :anzahl="item.anzahl" style="border: 1px solid white;"/>
             </div>
         </div>
     </div>
@@ -63,11 +67,13 @@
 import api from '../services/api';
 import BestellungCard from '../components/BestellungCard.vue';
 import AverageNutritionCard from '../components/AverageNutritionCard.vue';
+import KundeBestellanzahlCard from '../components/KundeBestellanzahlCard.vue';
 import { Button, InputText, InputNumber, Card, Divider, Message, ProgressSpinner, Select } from 'primevue';
 
 export default {
     name: 'zutaten',
     components: {
+        KundeBestellanzahlCard,
         AverageNutritionCard,
         BestellungCard,
         Button,
@@ -142,10 +148,10 @@ export default {
                 'Bestellungen des Kunden können nicht geladen werden'
             );
         },
-        async getZutatenVonEinemLieferant(lieferantenname) {
+        async getBestellungsanzahlProKunde() {
             await this.fetchData(
-                () => api.get(`/zutat/lieferant?lieferant=${lieferantenname}`),
-                `Keine Zutaten von Lieferant ${lieferantenname} gefunden`
+                () => api.get(`/bestellung/anzahl`),
+                `Keine Bestellungen gefunden`
             );
         },
         async fetchData(requestFn, fallbackErrorMessage) {
