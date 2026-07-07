@@ -5,10 +5,6 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm config set registry https://artifactory.novomind.com/artifactory/api/npm/novomind-virtual-npm/
-
-RUN npm login --auth-type=web
-
 RUN npm install
 
 COPY . .
